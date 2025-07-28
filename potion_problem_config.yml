@@ -1,0 +1,89 @@
+# Potion Problem Custom Configuration for Lean-Explore MCP Server
+# This configuration is specifically tailored for the potion_problem project
+
+# Database configuration for potion_problem's API database
+potion_problem:
+  # Path to the potion_problem API database
+  api_database_path: "C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"
+  
+  # Path to the main potion_problem workspace
+  workspace_path: "C:/Users/id374/workspace/potion_problem"
+  
+  # Integration mode
+  integration_mode: "hybrid"  # Options: "standalone", "hybrid", "api_only"
+  
+  # Custom search preferences
+  search_preferences:
+    # Prioritize APIs that have sorry contributions
+    prioritize_sorry_contributions: true
+    
+    # Include error patterns in search results
+    include_error_patterns: true
+    
+    # Weight for APIs that help with current sorries
+    sorry_contribution_weight: 2.0
+
+# Override default database configuration for local backend
+database:
+  # Use potion_problem's API database as primary source
+  url: "sqlite:///C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"
+  
+  # Fallback to default lean_explore database for comprehensive search
+  fallback_url: "sqlite:///data/lean_explore_data.db"
+
+# LLM configuration (using same as default)
+llm:
+  generation_model: "gemini-2.0-flash"
+  embedding_model: "models/text-embedding-004"
+  retries: 3
+  backoff: 1.0
+  thinking_budget: 0
+
+# Search configuration adapted for potion_problem
+search:
+  # Use same embedding model for consistency
+  embedding_model_name: "BAAI/bge-base-en-v1.5"
+  
+  # Custom paths for potion_problem specific indices (to be created)
+  faiss_index_path: "data/potion_faiss.index"
+  faiss_map_path: "data/potion_faiss_ids_map.json"
+  
+  # Search parameters
+  faiss_k: 50  # Smaller initial pool for focused search
+  faiss_nprobe: 100
+  faiss_oversampling_factor_for_packages: 2
+  semantic_similarity_threshold: 0.6  # Higher threshold for more relevant results
+  
+  # Custom ranking weights for potion_problem
+  pagerank_weight: 0.1  # Lower weight for centrality
+  text_relevance_weight: 1.0
+  name_match_weight: 1.5  # Higher weight for exact name matches
+  sorry_contribution_weight: 2.0  # Custom weight for APIs that solve sorries
+  
+  # Output
+  results_limit: 30  # Fewer but more relevant results
+
+# Custom MCP tools configuration
+mcp_tools:
+  # Enable potion_problem specific tools
+  enable_custom_tools:
+    - "search_by_sorry"  # Search APIs by sorry location
+    - "check_api_exists"  # Quick API existence check
+    - "get_api_usage"  # Get usage patterns for an API
+    - "list_non_existent"  # List APIs that don't exist
+    - "get_error_patterns"  # Get common error patterns
+
+# Logging configuration
+logging:
+  # Log to potion_problem specific location
+  log_file: "C:/Users/id374/workspace/potion_problem/logs/lean_explore_mcp.log"
+  log_level: "INFO"
+  
+# Cache configuration
+cache:
+  # Use potion_problem workspace for caching
+  cache_dir: "C:/Users/id374/workspace/potion_problem/.cache/lean_explore"
+  
+  # Cache search results for faster repeated queries
+  cache_search_results: true
+  cache_ttl_seconds: 3600  # 1 hour cache
