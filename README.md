@@ -34,8 +34,10 @@ lean-explore-potionassist/
 ├── src/lean_explore/
 │   ├── potion_problem/      # Potion Problem specific modules
 │   │   ├── backend.py       # API database integration
+│   │   ├── config.py        # Configuration management
 │   │   ├── enhanced_service.py  # Hybrid search service
 │   │   ├── auto_solver.py   # Automatic sorry solver
+│   │   ├── service.py       # Core hybrid service
 │   │   └── tools.py         # Custom MCP tools
 │   └── ...                  # Original LeanExplore modules
 ├── potion_problem_config.yml # Custom configuration
@@ -48,8 +50,9 @@ lean-explore-potionassist/
 ### Prerequisites
 
 1. Python 3.12+
-2. [Potion Problem repository](https://github.com/yourusername/potion_problem) at `C:\Users\id374\workspace\potion_problem`
-3. Initialized API database at `potion_problem/api_database/mathlib_apis.db`
+2. [uv](https://github.com/astral-sh/uv) package manager
+3. Potion Problem repository with initialized API database
+4. (Optional) LeanExplore data for full 600k+ API search
 
 ### Installation
 
@@ -60,6 +63,10 @@ cd lean-explore-potionassist
 
 # Install with uv
 uv sync
+
+# Configure environment
+cp .env.example .env
+# Edit .env to set your potion_problem path
 
 # Optional: Fetch LeanExplore data for comprehensive search
 uv run leanexplore data fetch

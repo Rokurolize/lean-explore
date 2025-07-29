@@ -111,14 +111,17 @@ class SorryAutoSolver:
         """Extract detailed information about a sorry."""
         lines = file_path.read_text().splitlines()
         
-        # Get surrounding context (10 lines before and after)
-        start = max(0, line_num - 10)
-        end = min(len(lines), line_num + 10)
+        # Convert to 0-based index
+        line_idx = line_num - 1
+        
+        # Get surrounding context (20 lines before and after for better analysis)
+        start = max(0, line_idx - 20)
+        end = min(len(lines), line_idx + 20)
         surrounding = lines[start:end]
         
         # Extract mentioned APIs from comments
         mentioned_apis = []
-        for i in range(max(0, line_num - 5), min(len(lines), line_num + 5)):
+        for i in range(max(0, line_idx - 15), min(len(lines), line_idx + 5)):
             if i < len(lines) and '--' in lines[i]:
                 comment = lines[i].split('--', 1)[1]
                 # Look for API-like patterns
@@ -131,7 +134,7 @@ class SorryAutoSolver:
         return Sorry(
             module=file_path.stem,
             line=line_num,
-            context=lines[line_num - 1] if line_num > 0 else "",
+            context=lines[line_idx] if 0 <= line_idx < len(lines) else "",
             surrounding_code=surrounding,
             mentioned_apis=list(set(mentioned_apis)),
             mathematical_concepts=concepts
@@ -149,7 +152,14 @@ class SorryAutoSolver:
             'probability': r'pmf|PMF|probability',
             'continuous': r'[Cc]ontinuous',
             'derivative': r'derivative|deriv',
-            'finite_difference': r'fwdDiff|forward.*diff'
+            'finite_difference': r'fwdDiff|forward.*diff|finite.*diff',
+            'alternating': r'alternating',
+            'binomial': r'binomial|choose',
+            'spline': r'spline|B-spline',
+            'positivity': r'positiv',
+            'sum': r'\bsum\b',
+            'frontier': r'frontier',
+            'indicator': r'indicator'
         }
         
         code_text = '\n'.join(code_lines)
@@ -202,7 +212,7 @@ class SorryAutoSolver:
         
         # Check contribution level from database
         try:
-            conn = sqlite3.connect(self.backend.config['database_path'])
+            conn = sqlite3.connect(str(self.backend.config.api_database_path))
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT contribution_level 
