@@ -488,7 +488,7 @@ wheels = [
 
 [[package]]
 name = "lean-explore"
-version = "0.3.0"
+version = "0.3.0.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "faiss-cpu" },

@@ -97,7 +97,7 @@ class HybridService:
             
             try:
                 lean_response = self.lean_service.search(
-                    queries=queries,
+                    query=' '.join(queries),  # Join queries into single string
                     package_filters=package_filters,
                     limit=remaining_limit * 2  # Get more to filter duplicates
                 )

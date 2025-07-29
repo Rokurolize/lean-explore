@@ -288,7 +288,7 @@ class SorryAutoSolver:
                         'score': api_score,
                         'search_path': [query],
                         'usage': usage,
-                        'import': result.primary_declaration.filepath
+                        'import': getattr(result.primary_declaration, 'filepath', '') or result.source_file or ''
                     })
                 
                 # Generate follow-up searches for promising APIs

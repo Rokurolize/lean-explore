@@ -1,0 +1,88 @@
+Q: なぜWindowsなのに、/c/Usersという不思議な形式を使う必要があり、そしてこの形式で動作するのですか？Git 
+  Bashであることが関係していますか？技術的な詳細を教えてください。
+
+A: はい、まさにGit Bashが関係しています。技術的な詳細を説明します。
+
+  Git Bash（MSYS2）の仕組み
+
+● Bash(echo $MSYSTEM)
+  ⎿  MINGW64
+
+● Bash(uname -a)
+  ⎿  MINGW64_NT-10.0-26200 roku-pc 3.6.3-7674c51e.x86_64 2025-07-01 09:13 UTC x86_64 Msys
+
+● Bash(mount)
+  ⎿  C:/Program Files/Git on / type ntfs (binary,noacl,auto)                            
+     C:/Program Files/Git/usr/bin on /bin type ntfs (binary,noacl,auto)
+     C:/Users/id374/AppData/Local/Temp on /tmp type ntfs (binary,noacl,posix=0,usertemp)
+     … +3 lines (ctrl+r to expand)
+
+● パス変換の仕組み
+
+  1. MSYS2のパス変換
+
+  Git BashはMSYS2ベースで、独自のパス変換レイヤーを持っています：
+
+  - Windowsパス: C:\Users\id374
+  - MSYS2内部: /c/Users/id374
+  - マウントポイント: C: → /c
+
+  2. 実際の変換確認
+
+● Bash(echo "Windows style: C:\\Users\\id374")
+  ⎿  Windows style: C:\Users\id374
+
+● Bash(echo "MSYS2 style: /c/Users/id374")
+  ⎿  MSYS2 style: /c/Users/id374
+
+● Bash(cygpath -w /c/Users/id374)
+  ⎿  C:\Users\id374
+
+● Bash(cygpath -u "C:\\Users\\id374")
+  ⎿  /c/Users/id374
+
+● 3. プロセス起動時の挙動
+
+● Bash(which uv)
+  ⎿  /c/users/id374/.local/bin/uv
+
+● Bash(uv run --project /c/Users/id374/mcp-tools/lean-explore python -c "import os; print('CWD:', os.getcwd());
+      print('Project path received:', '/c/Users/id374/mcp-too…)
+  ⎿  CWD: C:\Users\id374\mcp-tools\lean-explore                  
+     Project path received: /c/Users/id374/mcp-tools/lean-explore
+
+● 動作する理由
+
+  1. 自動パス変換
+
+  # MSYS2が自動変換
+  /c/Users/id374 → C:\Users\id374
+
+  2. uvの内部処理
+
+  uvは引数として受け取った/c/Users/id374/mcp-tools/lean-exploreを：
+  1. MSYS2環境で受け取る
+  2. 内部でWindowsパスC:\Users\id374\mcp-tools\lean-exploreに変換
+  3. Pythonプロセスに正しいパスを渡す
+
+  3. 環境変数の影響
+
+● Bash(echo "PATH contains: $(echo $PATH | tr ':' '\n' | grep -E '(uv|python)' | head -3)")
+  ⎿  PATH contains:
+
+● Bash(echo $PATHEXT)
+  ⎿  .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW
+
+● まとめ
+
+  なぜ/c/Users形式が必要で動作するのか：
+
+  1. MSYS2の仮想ファイルシステム: Git BashはMSYS2ベースで、Windowsドライブを/c, /d等としてマウント
+  2. 自動パス変換: MSYS2は内部で/c/Users/... ↔ C:\Users\...を自動変換
+  3. プロセス間通信:
+    - Git Bash内では/c/Users/...
+    - Windowsプロセス（uv, Python）にはC:\Users\...として渡される
+  4. 互換性レイヤー: MSYS2がUnix風パスとWindows風パスの橋渡しを行う
+
+  つまり、Git Bash環境特有の機能により、Unix風パスでもWindowsアプリケーションが正常動作するのです。
+
