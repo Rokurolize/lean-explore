@@ -14,7 +14,8 @@ from lean_explore.shared.models.api import (
     APISearchResponse,
     APISearchResultItem,
 )
-from lean_explore.potion_problem.backend import PotionProblemBackend, PotionProblemConfig
+from lean_explore.potion_problem.backend import PotionProblemBackend
+from lean_explore.potion_problem.config import get_potion_config, ConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,19 +29,14 @@ class HybridService:
         Args:
             potion_config_path: Path to potion_problem configuration file
         """
-        # Initialize Potion Problem backend
+        # Initialize Potion Problem backend using config manager
         if potion_config_path is None:
-            # Default configuration
-            self.potion_config = PotionProblemConfig(
-                api_database_path=Path("C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"),
-                workspace_path=Path("C:/Users/id374/workspace/potion_problem"),
-                prioritize_sorry_contributions=True,
-                include_error_patterns=True,
-                sorry_contribution_weight=2.0
-            )
+            # Use default config manager
+            self.potion_config = get_potion_config()
         else:
-            # Load from config file (implementation needed)
-            self.potion_config = self._load_config(potion_config_path)
+            # Load from specific config file
+            config_manager = ConfigManager(potion_config_path)
+            self.potion_config = config_manager.get_potion_problem_config()
         
         self.potion_backend = PotionProblemBackend(self.potion_config)
         
@@ -55,13 +51,6 @@ class HybridService:
             self.lean_service = None
             self.has_lean_service = False
     
-    def _load_config(self, config_path: Path) -> PotionProblemConfig:
-        """Load configuration from file (to be implemented)."""
-        # For now, return default config
-        return PotionProblemConfig(
-            api_database_path=Path("C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"),
-            workspace_path=Path("C:/Users/id374/workspace/potion_problem"),
-        )
     
     def search(
         self,

@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from lean_explore.potion_problem.auto_solver import SorryAutoSolver
+from lean_explore.potion_problem.config import get_potion_config
 
 
 def main():
@@ -23,13 +24,14 @@ def main():
     print("機械学習は使用せず、パターンマッチングと枝刈りのみ")
     print("=" * 50)
     
-    # Initialize solver
-    potion_path = Path("C:/Users/id374/workspace/potion_problem")
+    # Initialize solver using config
+    solver = SorryAutoSolver()
+    potion_path = solver.potion_path
+    
     if not potion_path.exists():
         print(f"❌ エラー: {potion_path} が見つかりません")
+        print(f"💡 ヒント: 環境変数 POTION_PROBLEM_PATH を設定するか、.env ファイルを作成してください")
         return
-    
-    solver = SorryAutoSolver(str(potion_path))
     
     # Get remaining sorries
     remaining_sorries = [

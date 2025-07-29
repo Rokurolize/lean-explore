@@ -11,24 +11,27 @@
   - `test_auto_solver.py`: Sorry resolution algorithms
   - `test_tools.py`: MCP tool implementations
 
-### 2. Hardcoded Paths
-- **Issue**: Paths are hardcoded to `C:/Users/id374/workspace/potion_problem`
-- **Fix Needed**: Make paths configurable via environment variables or config file
-- **Files Affected**:
-  - `src/lean_explore/potion_problem/enhanced_service.py` (line 30-31)
-  - `run_auto_solver.py` (line 27)
+### 2. ~~Hardcoded Paths~~ [RESOLVED]
+- **Issue**: ~~Paths are hardcoded to `C:/Users/id374/workspace/potion_problem`~~
+- **Status**: Resolved - Now uses environment variables and config management
+- **Resolution**: 
+  - Created `config.py` module for centralized configuration
+  - Added `.env` file support with python-dotenv
+  - All modules now use configurable paths
+  - Created `.env.example` for easy setup
 
 ### 3. ~~Missing Backend Modules~~ [RESOLVED]
 - **Issue**: ~~Not all backend modules are committed to git~~
 - **Status**: All modules have been committed as of commit 891a628
 - **Resolution Date**: Previously resolved
 
-### 4. Environment Setup Documentation
-- **Issue**: No clear documentation on required environment variables
-- **Needed**:
-  - Document `PYTHONPATH` requirements
-  - Document API key management (if using API backend)
-  - Document data directory setup
+### 4. ~~Environment Setup Documentation~~ [RESOLVED]
+- **Issue**: ~~No clear documentation on required environment variables~~
+- **Status**: Resolved - Updated SETUP_REQUIREMENTS.md with comprehensive documentation
+- **Resolution**:
+  - Added environment variable documentation in SETUP_REQUIREMENTS.md
+  - Created `.env.example` file with all configurable options
+  - Documented configuration precedence and usage
 
 ## Non-Critical Issues
 

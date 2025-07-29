@@ -15,7 +15,8 @@ from lean_explore.shared.models.api import (
     APISearchResponse,
     APISearchResultItem,
 )
-from lean_explore.potion_problem.backend import PotionProblemBackend, PotionProblemConfig
+from lean_explore.potion_problem.backend import PotionProblemBackend
+from lean_explore.potion_problem.config import get_potion_config
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +26,8 @@ class EnhancedHybridService:
     
     def __init__(self, potion_config_path: Optional[Path] = None):
         """Initialize the enhanced hybrid service."""
-        # Initialize Potion Problem backend
-        self.potion_config = PotionProblemConfig(
-            api_database_path=Path("C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"),
-            workspace_path=Path("C:/Users/id374/workspace/potion_problem"),
-            prioritize_sorry_contributions=True,
-            include_error_patterns=True,
-            sorry_contribution_weight=2.0
-        )
-        
+        # Initialize Potion Problem backend using config manager
+        self.potion_config = get_potion_config()
         self.potion_backend = PotionProblemBackend(self.potion_config)
         
         # Initialize Lean-Explore local service

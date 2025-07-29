@@ -38,15 +38,34 @@ uv run python -c "from lean_explore.potion_problem.backend import PotionProblemB
 
 ### 4. Environment Variables
 
-No environment variables are strictly required, but you may set:
+Configure environment variables for flexible path management:
 
-```bash
-# Optional: Override potion_problem location
-export POTION_PROBLEM_PATH="C:/Users/id374/workspace/potion_problem"
+1. **Create `.env` file** (recommended):
+   ```bash
+   # Copy the example file
+   cp .env.example .env
+   
+   # Edit .env with your paths
+   POTION_PROBLEM_PATH=C:/Users/id374/workspace/potion_problem
+   POTION_PROBLEM_DB_PATH=C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db
+   ```
 
-# Optional: Python path (usually handled by uv)
-export PYTHONPATH="C:/Users/id374/mcp-tools/lean-explore-potionassist/src:$PYTHONPATH"
-```
+2. **Or set system environment variables**:
+   ```bash
+   # Override potion_problem location
+   export POTION_PROBLEM_PATH="C:/Users/id374/workspace/potion_problem"
+   
+   # Optional: Specific database path
+   export POTION_PROBLEM_DB_PATH="C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db"
+   
+   # Optional: Python path (usually handled by uv)
+   export PYTHONPATH="C:/Users/id374/mcp-tools/lean-explore-potionassist/src:$PYTHONPATH"
+   ```
+
+3. **Configuration precedence**:
+   - Environment variables override `.env` file
+   - `.env` file overrides `potion_problem_config.yml`
+   - `potion_problem_config.yml` provides defaults
 
 ### 5. MCP Server Configuration
 
@@ -78,16 +97,13 @@ For Claude Code integration, add to `.mcp.json`:
 Run these commands to verify setup:
 
 ```bash
-# Check API database connection
+# Check API database connection (now uses config from .env)
 uv run python -c "
-from lean_explore.potion_problem.backend import PotionProblemBackend, PotionProblemConfig
-from pathlib import Path
-config = PotionProblemConfig(
-    api_database_path=Path('C:/Users/id374/workspace/potion_problem/api_database/mathlib_apis.db'),
-    workspace_path=Path('C:/Users/id374/workspace/potion_problem')
-)
+from lean_explore.potion_problem.backend import PotionProblemBackend
+from lean_explore.potion_problem.config import get_potion_config
+config = get_potion_config()
 backend = PotionProblemBackend(config)
-print('✓ Database connected')
+print(f'✓ Database connected: {config.api_database_path}')
 "
 
 # Test MCP server

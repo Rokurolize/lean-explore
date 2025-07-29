@@ -19,6 +19,7 @@ from collections import defaultdict
 
 from lean_explore.potion_problem.backend import PotionProblemBackend
 from lean_explore.potion_problem.service import HybridService
+from lean_explore.potion_problem.config import get_potion_config
 
 
 @dataclass
@@ -45,11 +46,22 @@ class SearchPath:
 class SorryAutoSolver:
     """Automated sorry elimination through systematic API exploration."""
     
-    def __init__(self, potion_problem_path: str):
-        self.potion_path = Path(potion_problem_path)
-        self.backend = PotionProblemBackend({
-            'database_path': str(self.potion_path / 'api_database' / 'mathlib_apis.db')
-        })
+    def __init__(self, potion_problem_path: Optional[str] = None):
+        # Use config manager if no path provided
+        if potion_problem_path is None:
+            config = get_potion_config()
+            self.potion_path = config.workspace_path
+            self.backend = PotionProblemBackend(config)
+        else:
+            self.potion_path = Path(potion_problem_path)
+            # Create custom config for provided path
+            from lean_explore.potion_problem.backend import PotionProblemConfig
+            config = PotionProblemConfig(
+                api_database_path=self.potion_path / 'api_database' / 'mathlib_apis.db',
+                workspace_path=self.potion_path
+            )
+            self.backend = PotionProblemBackend(config)
+        
         self.service = HybridService()
         
         # Pattern knowledge base
@@ -375,10 +387,9 @@ class SorryAutoSolver:
 
 def demo():
     """Demo the auto solver on remaining sorries."""
-    # Path to potion_problem
-    potion_path = Path("C:/Users/id374/workspace/potion_problem")
-    
-    solver = SorryAutoSolver(str(potion_path))
+    # Use config-based path
+    solver = SorryAutoSolver()
+    potion_path = solver.potion_path
     
     # Remaining sorries from IrwinHallTheory.lean
     remaining_sorries = [
