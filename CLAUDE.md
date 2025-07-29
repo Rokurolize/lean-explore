@@ -1,187 +1,141 @@
-# LeanExplore-PotionAssist 開発者ガイド
+# CLAUDE.md
 
-## プロジェクト概要
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-このプロジェクトは、**LeanExplore**の特別版フォークで、**媚薬問題（Potion Problem）の形式証明**を支援するために特化してカスタマイズされています。
+## Project Overview
 
-### 🎯 ミッション
+This is a specialized fork of LeanExplore customized for the **Potion Problem (媚薬問題)** formal verification project. The primary mission is to prevent hallucination of non-existent Mathlib APIs while providing accurate, real-time assistance for formal proof development in Lean 4.
 
-1. **ハルシネーション防止**: 実在しないMathlib APIの使用を防ぐ
-2. **効率的なAPI検索**: Sorry箇所に最適なAPIを迅速に発見
-3. **リアルタイム支援**: MCP経由でpotion_problem側のClaude Codeを支援
+### Key Goals
+1. **Hallucination Prevention**: Verify API existence against curated database
+2. **Efficient API Search**: Find optimal APIs for sorry elimination  
+3. **Real-time MCP Support**: Assist potion_problem development via Model Context Protocol
 
-### 📍 重要な理解
+## Architecture
 
-- **このディレクトリ**: `C:\Users\id374\mcp-tools\lean-explore-potionassist` (私の作業場所)
-- **支援対象**: `C:\Users\id374\workspace\potion_problem` (別のClaude Codeが作業)
-- **役割**: potion_problemの形式証明を支援する特殊ツールの開発・保守
+### Core Components
 
-## アーキテクチャ
+**PotionProblemBackend** (`backend.py`)
+- Integrates with potion_problem's API database
+- Validates API existence and tracks usage patterns
+- Ranks APIs by sorry contribution scores
 
-### 🏗️ 特殊機能実装済み
+**EnhancedHybridService** (`enhanced_service.py`)
+- Parallel search across 600k+ LeanExplore declarations and curated Potion DB
+- True API discovery with confidence scoring
+- Error pattern learning capabilities
 
-```
-src/lean_explore/potion_problem/
-├── backend.py           # API DBとの統合バックエンド
-├── enhanced_service.py  # ハイブリッド検索サービス
-├── auto_solver.py      # 自動Sorry解決システム
-├── service.py          # カスタムサービス
-└── tools.py            # MCP追加ツール
-```
+**SorryAutoSolver** (`auto_solver.py`)
+- Automated sorry analysis with context extraction
+- Pattern matching from successful eliminations
+- Depth-first search with pruning heuristics
 
-### 🔧 主要コンポーネント
+**Configuration Management** (`config.py`)
+- Environment variable support via `.env` file
+- Flexible path configuration
+- Precedence: env vars → .env → potion_problem_config.yml → defaults
 
-1. **PotionProblemBackend**
-   - potion_problemのAPI DBと直接連携
-   - 実在/非実在APIの判別機能
-   - Sorry貢献度によるランキング
-
-2. **EnhancedHybridService**
-   - LeanExplore本体（60万件）+ potion_problem DBの並列検索
-   - 真のAPI発見能力
-   - エラーパターン学習機能
-
-3. **SorryAutoSolver**
-   - Sorry箇所の自動分析
-   - 文脈ベースのAPI推薦
-   - パターンマッチングによる候補絞り込み
-
-## 開発ワークフロー
-
-### 📋 日常タスク
-
-1. **新機能追加時**:
-   ```python
-   # src/lean_explore/potion_problem/tools.py に追加
-   @mcp_app.tool()
-   async def check_api_exists(api_name: str, ctx: Context) -> bool:
-       """APIの実在性を即座に確認"""
-       # 実装
-   ```
-
-2. **エラーパターン登録**:
-   ```python
-   # enhanced_service.py のパターンDBに追加
-   ERROR_PATTERNS = {
-       "unknown identifier": ["API名のタイポ", "importが不足"],
-       # 新パターン追加
-   }
-   ```
-
-3. **Sorry解決支援強化**:
-   ```python
-   # auto_solver.py の探索アルゴリズム改良
-   def enhanced_search(self, context):
-       # より賢い探索ロジック
-   ```
-
-### 🎨 設計原則
-
-1. **正確性優先**: ハルシネーションゼロを目指す
-2. **高速応答**: MCPツールは100ms以内に応答
-3. **文脈理解**: Sorry周辺のコード文脈を深く分析
-4. **継続的学習**: 成功/失敗パターンをDBに蓄積
-
-## ドメイン知識
-
-### 🧮 媚薬問題（Potion Problem）について
-
-- **目標**: E[τ] = e（オイラー数）の形式証明
-- **手法**: Irwin-Hall分布、テレスコーピング級数
-- **難関**: 高度な数学的証明をLean 4で完全形式化
-
-### 📚 主要証明モジュール
-
-```
-PotionProblem/
-├── Basic.lean                   # 基本定義
-├── IrwinHallTheory.lean        # Irwin-Hall分布（主戦場）
-├── ProbabilityFoundations.lean # 確率論基盤
-├── SeriesAnalysis.lean         # 級数解析
-└── FactorialSeries.lean        # 階乗級数
-```
-
-### 🎯 典型的なSorryパターン
-
-1. **収束性証明**: `summable_*`, `hasSum_*`
-2. **等式証明**: `tsum_eq_*`, `sum_eq_*`
-3. **不等式証明**: `le_of_*`, `lt_of_*`
-4. **極限証明**: `tendsto_*`, `lim_*`
-
-## 技術スタック
-
-- **Lean 4**: v4.21.0
-- **Mathlib**: 最新版
-- **Python**: 3.12+
-- **MCP**: Model Context Protocol
-- **データベース**: SQLite (API DB)
-- **ベクトル検索**: FAISS
-
-## よく使うコマンド
+## Common Commands
 
 ```bash
-# MCP サーバー起動（ローカルモード）
-uv run python -m lean_explore.mcp.server --backend local
+# Setup environment
+cp .env.example .env
+# Edit .env to set POTION_PROBLEM_PATH
 
-# 自動ソルバー実行
+# Install dependencies
+uv sync
+
+# Run auto-solver
 uv run python run_auto_solver.py
 
-# API DB更新
-cd ../workspace/potion_problem/api_database
-python migrate_apis.py
+# Start MCP server (for Claude Code integration)
+uv run python -m lean_explore.mcp.server --backend local
 
-# テスト実行
-uv run pytest tests/lean_explore/potion_problem/
+# Run specific tests (when implemented)
+uv run pytest tests/lean_explore/potion_problem/test_backend.py -v
+
+# Check configuration
+uv run python -c "from lean_explore.potion_problem.config import get_potion_config; print(get_potion_config())"
+
+# Test API search
+uv run python -c "from lean_explore.potion_problem.backend import PotionProblemBackend; from lean_explore.potion_problem.config import get_potion_config; backend = PotionProblemBackend(get_potion_config()); print(backend.search_apis('continuous', limit=3))"
 ```
 
-## トラブルシューティング
+## Development Workflow
 
-### 🐛 よくある問題
+### Adding New MCP Tools
+```python
+# In src/lean_explore/potion_problem/tools.py
+@mcp_app.tool()
+async def your_new_tool(param: str, ctx: Context) -> Dict:
+    """Tool description for MCP"""
+    # Implementation using backend/service
+```
 
-1. **「API not found」エラー**
-   - API DBが最新か確認
-   - importパスが正しいか確認
-   - 名前空間の違い（例: `Nat.` vs `ℕ.`）
+### Enhancing Sorry Resolution
+1. Update concept patterns in `auto_solver._extract_concepts()`
+2. Add successful patterns to `_load_successful_patterns()`
+3. Improve scoring logic in `score_api()`
 
-2. **MCP接続エラー**
-   - .mcp.jsonのパスが正しいか
-   - sentence-transformersがインストールされているか
+### API Database Updates
+The API database (`mathlib_apis.db`) contains:
+- `apis`: Core API information with existence flags
+- `usage_patterns`: Code examples for each API
+- `sorry_contributions`: APIs that help resolve specific sorries
+- `api_errors`: Common mistakes and their fixes
+- `non_existent_apis`: Patterns that don't exist (hallucination prevention)
 
-3. **Sorry解決の提案が的外れ**
-   - コンテキスト窓を広げる
-   - 関連定理の依存関係を確認
+## Domain Knowledge
 
-## 改善アイデア
+### Potion Problem Context
+- **Goal**: Prove E[τ] = e (Euler's number) formally
+- **Method**: Irwin-Hall distribution, telescoping series
+- **Challenge**: Complex mathematical proofs requiring precise API usage
 
-### 🚀 今後の拡張案
+### Typical Sorry Patterns
+1. **Convergence**: `summable_*`, `hasSum_*`
+2. **Equality**: `tsum_eq_*`, `sum_eq_*`
+3. **Inequality**: `le_of_*`, `lt_of_*`
+4. **Limits**: `tendsto_*`, `lim_*`
 
-1. **プロアクティブ支援**
-   - Sorryを書いた瞬間に候補を表示
-   - 証明の次ステップを予測
+### Key Lean 4 Modules
+```
+PotionProblem/
+├── IrwinHallTheory.lean     # Main battlefield - contains most sorries
+├── ProbabilityFoundations.lean
+├── SeriesAnalysis.lean
+└── FactorialSeries.lean
+```
 
-2. **学習機能強化**
-   - 成功した証明パターンを自動学習
-   - ユーザーの証明スタイルに適応
+## Technical Requirements
 
-3. **可視化ツール**
-   - 証明の依存関係グラフ
-   - API使用頻度ヒートマップ
+- **Python**: 3.12+ (uses modern type hints)
+- **LeanExplore Data**: Optional but recommended (~3.6GB database)
+- **Dependencies**: Managed by `uv` (see pyproject.toml)
+- **API Database**: Required SQLite database from potion_problem
 
-4. **バッチ処理**
-   - 複数Sorryの一括解決
-   - 証明の自動リファクタリング
+## Troubleshooting
 
-## リソース
+### Configuration Issues
+- Ensure `.env` file exists with correct paths
+- Check `POTION_PROBLEM_PATH` environment variable
+- Verify database exists at configured location
 
-- [Mathlib Docs](https://leanprover-community.github.io/mathlib4_docs/)
-- [Lean 4 Manual](https://leanprover.github.io/lean4/doc/)
-- [MCP Specification](https://modelcontextprotocol.io/)
-- [媚薬問題の数学的背景](https://x.com/suamax_scp/status/1942902598203322849)
+### Search Performance
+- First search may be slow (loading FAISS index)
+- Consider implementing index caching
+- Monitor PyTorch deprecation warnings
 
----
+### API Not Found
+- Check if API exists in different namespace (e.g., `Nat.` vs `ℕ.`)
+- Verify import statements in target Lean file
+- Update API database if Mathlib has changed
 
-**Remember**: 私たちの目標は、potion_problem側のClaude Codeが**迷わず、間違えず、効率的に**形式証明を完成できるよう支援することです。
+## Important Design Decisions
 
-> 「正しいAPIを、正しいタイミングで、正しい使い方と共に提供する」
+1. **Hybrid Search Strategy**: Combines curated knowledge (high precision) with comprehensive search (high recall)
+2. **Context-Aware Scoring**: APIs are scored based on sorry context, not just keyword matching
+3. **Configurable Paths**: All paths use configuration management for portability
+4. **Stateless Auto-Solver**: Each sorry is analyzed independently for simplicity
 
-それが、LeanExplore-PotionAssistの使命です。
+Remember: The goal is to help potion_problem developers complete formal proofs **accurately, efficiently, and without hallucination**.
