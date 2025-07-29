@@ -4,15 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lean-explore"
-version = "0.3.0"
+version = "0.3.0-potion"
 authors = [
     { name = "Justin Asher", email = "justinchadwickasher@gmail.com" },
+    { name = "Potion Problem Contributors" },
 ]
-description = "A search engine for Lean 4 declarations."
+description = "A specialized fork of LeanExplore for Potion Problem formal verification support - prevents Mathlib API hallucination."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-keywords = ["lean", "lean4", "search", "formal methods", "theorem prover", "math", "AI"]
+keywords = ["lean", "lean4", "search", "formal methods", "theorem prover", "math", "AI", "potion problem", "hallucination prevention", "mathlib", "sorry elimination"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

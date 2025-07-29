@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 N/A
 
+## [0.3.0-potion] - 2025-07-29
+
+### Added
+- **Potion Problem Integration**: Complete integration with potion_problem's API database for hallucination prevention
+- **Enhanced Hybrid Service**: Parallel search combining 600k+ LeanExplore declarations with curated API database
+- **Custom MCP Tools**: New tools for API verification, usage patterns, and sorry-specific search
+  - `check_api_exists`: Instant API existence verification
+  - `search_by_sorry`: Find APIs for specific sorry locations
+  - `get_api_usage`: Retrieve usage patterns and examples
+  - `list_non_existent`: Check commonly mistaken API patterns
+  - `get_error_patterns`: Learn from common API usage errors
+  - `api_database_stats`: View API database statistics
+- **Auto-Solver System**: Automated sorry resolution with context-aware API suggestions
+- **Custom Configuration**: `potion_problem_config.yml` for project-specific settings
+- **Developer Documentation**: `CLAUDE.md` and enhanced setup guides
+
+### Changed
+- Modified backend architecture to support dual database operation
+- Enhanced search algorithms to prioritize APIs that help with sorry elimination
+- Updated MCP server to include potion_problem specific functionality
+- Improved error handling to catch and learn from API usage mistakes
+
+### Fork Information
+- This version represents a specialized fork of LeanExplore v0.3.0
+- Forked specifically to support the Potion Problem (媚薬問題) formal verification project
+- Maintains compatibility with original LeanExplore while adding hallucination prevention features
+
 ## [0.3.0] - 2025-06-09
 
 ### Added
