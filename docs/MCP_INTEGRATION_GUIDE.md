@@ -30,12 +30,12 @@ LeanExplore provides a **Model Context Protocol (MCP) server** that enables AI a
    ```json
    {
      "mcpServers": {
-       "lean-explore": {
+       "lean-explore-potion": {
          "command": "C:\\\\users\\\\id374\\\\.local\\\\bin\\\\uv.EXE",
          "args": [
            "run",
            "--project",
-           "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore",
+           "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore-potionassist",
            "python",
            "-m",
            "lean_explore.mcp.server",
@@ -51,7 +51,7 @@ LeanExplore provides a **Model Context Protocol (MCP) server** that enables AI a
 3. **Verify Connection**:
    ```bash
    claude --debug
-   # Check that lean-explore shows as "connected" in /mcp
+   # Check that lean-explore-potion shows as "connected" in /mcp
    ```
 
 ## Architecture
@@ -82,7 +82,7 @@ SQLite + FAISS OR Remote API
 ### Method 1: Claude Desktop (Recommended)
 
 ```bash
-uv run mcp install src/lean_explore/mcp/server.py -v BACKEND=local -n lean-explore
+uv run mcp install src/lean_explore/mcp/server.py -v BACKEND=local -n lean-explore-potion
 ```
 
 ### Method 2: Manual Configuration
@@ -120,12 +120,12 @@ Options:
 ```json
 {
   "mcpServers": {
-    "lean-explore": {
+    "lean-explore-potion": {
       "command": "C:\\\\users\\\\id374\\\\.local\\\\bin\\\\uv.EXE",
       "args": [
         "run",
         "--project", 
-        "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore",
+        "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore-potionassist",
         "python",
         "-m",
         "lean_explore.mcp.server",
@@ -142,12 +142,12 @@ Options:
 ```json
 {
   "mcpServers": {
-    "lean-explore": {
+    "lean-explore-potion": {
       "command": "uv",
       "args": [
         "run",
         "--project",
-        "/path/to/lean-explore",
+        "/path/to/lean-explore-potionassist",
         "python",
         "-m",
         "lean_explore.mcp.server",
@@ -310,13 +310,13 @@ python -m lean_explore.mcp.server --backend api --api-key YOUR_API_KEY
 1. **Project-Scoped** (Recommended):
    ```bash
    # Create .mcp.json in project root
-   claude mcp add lean-explore-local -s project ...
+   claude mcp add lean-explore-potion-local -s project ...
    ```
 
 2. **User-Scoped** (Global):
    ```bash
    # Available across all projects
-   claude mcp add lean-explore-global -s user ...
+   claude mcp add lean-explore-potion-global -s user ...
    ```
 
 ### Claude Desktop Integration
@@ -324,12 +324,12 @@ python -m lean_explore.mcp.server --backend api --api-key YOUR_API_KEY
 ```json
 {
   "mcpServers": {
-    "lean-explore": {
+    "lean-explore-potion": {
       "command": "uv",
       "args": [
         "run",
         "--project",
-        "/path/to/lean-explore",
+        "/path/to/lean-explore-potionassist",
         "python",
         "-m",
         "lean_explore.mcp.server",
@@ -352,7 +352,7 @@ async def main():
     server_params = StdioServerParameters(
         command="python",
         args=["-m", "lean_explore.mcp.server", "--backend", "local"],
-        env={"PYTHONPATH": "/path/to/lean-explore/src"}
+        env={"PYTHONPATH": "/path/to/lean-explore-potionassist/src"}
     )
     
     async with stdio_client(server_params) as (read, write):
@@ -379,7 +379,7 @@ if __name__ == "__main__":
 
 **Symptoms**:
 ```
-[ERROR] MCP server "lean-explore" Server stderr: ModuleNotFoundError: No module named 'sentence_transformers'
+[ERROR] MCP server "lean-explore-potion" Server stderr: ModuleNotFoundError: No module named 'sentence_transformers'
 ```
 
 **Solution**:
@@ -424,7 +424,7 @@ Use double-escaped backslashes in JSON:
 ```json
 {
   "command": "C:\\\\users\\\\id374\\\\.local\\\\bin\\\\uv.EXE",
-  "args": ["run", "--project", "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore", ...]
+  "args": ["run", "--project", "C:\\\\Users\\\\id374\\\\mcp-tools\\\\lean-explore-potionassist", ...]
 }
 ```
 

@@ -12,7 +12,7 @@
 
 ### 📍 重要な理解
 
-- **このディレクトリ**: `C:\Users\id374\mcp-tools\lean-explore` (私の作業場所)
+- **このディレクトリ**: `C:\Users\id374\mcp-tools\lean-explore-potionassist` (私の作業場所)
 - **支援対象**: `C:\Users\id374\workspace\potion_problem` (別のClaude Codeが作業)
 - **役割**: potion_problemの形式証明を支援する特殊ツールの開発・保守
 

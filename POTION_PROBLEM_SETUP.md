@@ -1,10 +1,10 @@
 # Potion Problem Integration for Lean-Explore MCP Server
 
-This document describes the custom integration between lean-explore and the potion_problem project, providing enhanced API search and sorry elimination support.
+This document describes the custom integration between lean-explore-potionassist and the potion_problem project, providing enhanced API search and sorry elimination support.
 
 ## Overview
 
-The potion_problem integration extends lean-explore with:
+The potion_problem integration extends lean-explore-potionassist with:
 
 1. **API Database Integration**: Direct access to the curated Mathlib4 API database
 2. **Sorry-Specific Search**: Find APIs that help eliminate specific sorries
@@ -44,7 +44,7 @@ The hybrid search system:
 
 1. **Install dependencies**:
    ```bash
-   cd C:\Users\id374\mcp-tools\lean-explore
+   cd C:\Users\id374\mcp-tools\lean-explore-potionassist
    pip install -e .
    ```
 
@@ -64,7 +64,7 @@ The hybrid search system:
 
 With potion_problem integration:
 ```bash
-cd C:\Users\id374\mcp-tools\lean-explore
+cd C:\Users\id374\mcp-tools\lean-explore-potionassist
 python -m lean_explore.mcp.server --backend local
 ```
 
@@ -83,9 +83,9 @@ Add to your Claude Desktop configuration:
         "--backend",
         "local"
       ],
-      "cwd": "C:\\Users\\id374\\mcp-tools\\lean-explore",
+      "cwd": "C:\\Users\\id374\\mcp-tools\\lean-explore-potionassist",
       "env": {
-        "PYTHONPATH": "C:\\Users\\id374\\mcp-tools\\lean-explore\\src"
+        "PYTHONPATH": "C:\\Users\\id374\\mcp-tools\\lean-explore-potionassist\\src"
       }
     }
   }
@@ -156,7 +156,7 @@ leanexplore data fetch
 
 Ensure the PYTHONPATH includes the src directory:
 ```bash
-export PYTHONPATH="C:\Users\id374\mcp-tools\lean-explore\src:$PYTHONPATH"
+export PYTHONPATH="C:\Users\id374\mcp-tools\lean-explore-potionassist\src:$PYTHONPATH"
 ```
 
 ## Development

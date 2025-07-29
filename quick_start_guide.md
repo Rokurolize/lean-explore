@@ -10,7 +10,7 @@ This integration combines:
 ## Installation Complete! ✅
 
 The following has been set up:
-1. ✅ lean-explore repository cloned to `C:\Users\id374\mcp-tools\lean-explore`
+1. ✅ lean-explore-potionassist repository cloned to `C:\Users\id374\mcp-tools\lean-explore-potionassist`
 2. ✅ Virtual environment created with `uv`
 3. ✅ All dependencies installed
 4. ✅ Custom backend integrated with potion_problem database
@@ -44,14 +44,14 @@ cd C:\Users\id374\mcp-tools\lean-explore
    {
      "mcpServers": {
        "lean-explore-potion": {
-         "command": "C:\\Users\\id374\\mcp-tools\\lean-explore\\.venv\\Scripts\\python.exe",
+         "command": "C:\\Users\\id374\\mcp-tools\\lean-explore-potionassist\\.venv\\Scripts\\python.exe",
          "args": [
            "-m",
            "lean_explore.mcp.server",
            "--backend",
            "local"
          ],
-         "cwd": "C:\\Users\\id374\\mcp-tools\\lean-explore"
+         "cwd": "C:\\Users\\id374\\mcp-tools\\lean-explore-potionassist"
        }
      }
    }
