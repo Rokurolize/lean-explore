@@ -15,22 +15,27 @@ This is a specialized fork of LeanExplore customized for the **Potion Problem (�
 
 ### Core Components
 
-**PotionProblemBackend** (`backend.py`)
-- Integrates with potion_problem's API database
+**PotionProblemBackend** (`src/lean_explore/potion_problem/backend.py`)
+- Integrates with potion_problem's API database (`external/potion_problem/api_database/mathlib_apis.db`)
 - Validates API existence and tracks usage patterns
 - Ranks APIs by sorry contribution scores
 
-**EnhancedHybridService** (`enhanced_service.py`)
+**EnhancedHybridService** (`src/lean_explore/potion_problem/enhanced_service.py`)
 - Parallel search across 600k+ LeanExplore declarations and curated Potion DB
 - True API discovery with confidence scoring
 - Error pattern learning capabilities
 
-**SorryAutoSolver** (`auto_solver.py`)
+**SorryAutoSolver** (`src/lean_explore/potion_problem/auto_solver.py`)
 - Automated sorry analysis with context extraction
 - Pattern matching from successful eliminations
 - Depth-first search with pruning heuristics
 
-**Configuration Management** (`config.py`)
+**MCP Optimization** (`src/lean_explore/mcp/optimization.py`)
+- Token-efficient output format (70% reduction)
+- Relevance scoring for potion_problem
+- Configurable via environment variables
+
+**Configuration Management** (`src/lean_explore/potion_problem/config.py`)
 - Environment variable support via `.env` file
 - Flexible path configuration
 - Precedence: env vars → .env → potion_problem_config.yml → defaults
@@ -40,25 +45,42 @@ This is a specialized fork of LeanExplore customized for the **Potion Problem (�
 ```bash
 # Setup environment
 cp .env.example .env
-# Edit .env to set POTION_PROBLEM_PATH
+# Edit .env to set POTION_PROBLEM_PATH (relative path: ./external/potion_problem)
 
-# Install dependencies
-uv sync
+# Install dependencies (including dev dependencies)
+uv sync --extra dev
 
-# Run auto-solver
-uv run python run_auto_solver.py
+# Run tests
+uv run pytest tests/ -v
+uv run pytest tests/lean_explore/mcp/test_optimization.py -v  # Single test file
 
 # Start MCP server (for Claude Code integration)
 uv run python -m lean_explore.mcp.server --backend local
 
-# Run specific tests (when implemented)
-uv run pytest tests/lean_explore/potion_problem/test_backend.py -v
+# Run auto-solver
+uv run python run_auto_solver.py
 
 # Check configuration
 uv run python -c "from lean_explore.potion_problem.config import get_potion_config; print(get_potion_config())"
 
 # Test API search
 uv run python -c "from lean_explore.potion_problem.backend import PotionProblemBackend; from lean_explore.potion_problem.config import get_potion_config; backend = PotionProblemBackend(get_potion_config()); print(backend.search_apis('continuous', limit=3))"
+```
+
+## MCP Server Configuration
+
+The MCP server can be optimized via environment variables (see `.mcp.json`):
+
+```bash
+# Enable optimization mode (reduces output tokens by ~70%)
+export LEAN_EXPLORE_OPTIMIZE=true
+
+# Set default search result limit
+export LEAN_EXPLORE_DEFAULT_LIMIT=5
+
+# Exclude keywords (be careful with mathematical terms!)
+export LEAN_EXPLORE_EXCLUDE_KEYWORDS="quantum,physics,geometry"
+# Note: Avoid excluding "telescope" as it filters important mathematical concepts
 ```
 
 ## Development Workflow
@@ -77,7 +99,23 @@ async def your_new_tool(param: str, ctx: Context) -> Dict:
 2. Add successful patterns to `_load_successful_patterns()`
 3. Improve scoring logic in `score_api()`
 
-### API Database Updates
+### Running Tests with pytest
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=lean_explore --cov-report=html
+
+# Run specific test class
+uv run pytest tests/lean_explore/mcp/test_optimization.py::TestPotionOptimizedResult -v
+
+# Run tests matching pattern
+uv run pytest -k "test_optimization" -v
+```
+
+## API Database Structure
+
 The API database (`mathlib_apis.db`) contains:
 - `apis`: Core API information with existence flags
 - `usage_patterns`: Code examples for each API
@@ -85,41 +123,22 @@ The API database (`mathlib_apis.db`) contains:
 - `api_errors`: Common mistakes and their fixes
 - `non_existent_apis`: Patterns that don't exist (hallucination prevention)
 
-## Domain Knowledge
+## Submodule Management
 
-### Potion Problem Context
-- **Goal**: Prove E[τ] = e (Euler's number) formally
-- **Method**: Irwin-Hall distribution, telescoping series
-- **Challenge**: Complex mathematical proofs requiring precise API usage
+The `potion_problem` repository is included as a submodule:
+```bash
+# Initialize/update submodule
+git submodule update --init --recursive
 
-### Typical Sorry Patterns
-1. **Convergence**: `summable_*`, `hasSum_*`
-2. **Equality**: `tsum_eq_*`, `sum_eq_*`
-3. **Inequality**: `le_of_*`, `lt_of_*`
-4. **Limits**: `tendsto_*`, `lim_*`
-
-### Key Lean 4 Modules
-```
-PotionProblem/
-├── IrwinHallTheory.lean     # Main battlefield - contains most sorries
-├── ProbabilityFoundations.lean
-├── SeriesAnalysis.lean
-└── FactorialSeries.lean
+# Pull latest changes
+cd external/potion_problem
+git pull origin main
+cd ../..
+git add external/potion_problem
+git commit -m "Update potion_problem submodule"
 ```
 
-## Technical Requirements
-
-- **Python**: 3.12+ (uses modern type hints)
-- **LeanExplore Data**: Optional but recommended (~3.6GB database)
-- **Dependencies**: Managed by `uv` (see pyproject.toml)
-- **API Database**: Required SQLite database from potion_problem
-
-## Troubleshooting
-
-### Configuration Issues
-- Ensure `.env` file exists with correct paths
-- Check `POTION_PROBLEM_PATH` environment variable
-- Verify database exists at configured location
+## Known Issues and Solutions
 
 ### Search Performance
 - First search may be slow (loading FAISS index)
@@ -131,11 +150,17 @@ PotionProblem/
 - Verify import statements in target Lean file
 - Update API database if Mathlib has changed
 
+### False Positive Filtering
+- Be cautious with exclude keywords
+- "telescope" filters important mathematical concepts like "telescoping_series"
+- Review `test_mcp_optimization_report.md` for analysis
+
 ## Important Design Decisions
 
 1. **Hybrid Search Strategy**: Combines curated knowledge (high precision) with comprehensive search (high recall)
 2. **Context-Aware Scoring**: APIs are scored based on sorry context, not just keyword matching
 3. **Configurable Paths**: All paths use configuration management for portability
 4. **Stateless Auto-Solver**: Each sorry is analyzed independently for simplicity
+5. **MCP Optimization**: Balances token efficiency with information completeness
 
 Remember: The goal is to help potion_problem developers complete formal proofs **accurately, efficiently, and without hallucination**.

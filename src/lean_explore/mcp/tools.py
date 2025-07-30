@@ -10,6 +10,7 @@ made available through the MCP application context.
 
 import asyncio  # Needed for asyncio.iscoroutinefunction
 import logging
+import os
 from typing import Any, Dict, List, Optional, Union
 
 from mcp.server.fastmcp import Context as MCPContext
@@ -24,6 +25,33 @@ from lean_explore.shared.models.api import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Global optimization mode setting
+OPTIMIZE_MODE = os.environ.get('LEAN_EXPLORE_OPTIMIZE', 'false').lower() == 'true'
+
+
+def _get_exclude_keywords() -> List[str]:
+    """Get list of keywords to exclude from search results from environment variable."""
+    keywords_str = os.environ.get('LEAN_EXPLORE_EXCLUDE_KEYWORDS', '')
+    return [k.strip().lower() for k in keywords_str.split(',') if k.strip()]
+
+
+def _should_exclude_result(item: APISearchResultItem, exclude_keywords: List[str]) -> bool:
+    """Check if a search result should be excluded based on keywords."""
+    if not exclude_keywords:
+        return False
+    
+    # Combine all text fields to check
+    text_to_check = ' '.join(filter(None, [
+        item.primary_declaration.lean_name if item.primary_declaration else '',
+        item.statement_text or '',
+        item.docstring or '',
+        item.informal_description or '',
+        item.source_file or ''
+    ])).lower()
+    
+    # Check if any exclude keyword is present
+    return any(keyword in text_to_check for keyword in exclude_keywords)
 
 
 async def _get_backend_from_context(ctx: MCPContext) -> BackendServiceType:
@@ -51,7 +79,7 @@ async def _get_backend_from_context(ctx: MCPContext) -> BackendServiceType:
     return backend
 
 
-def _prepare_mcp_result_item(backend_item: APISearchResultItem) -> APISearchResultItem:
+def _prepare_mcp_result_item(backend_item: APISearchResultItem) -> Union[APISearchResultItem, Dict[str, Any], None]:
     """Prepares an APISearchResultItem for MCP response.
 
     This helper ensures that the item sent over MCP does not include
@@ -62,9 +90,23 @@ def _prepare_mcp_result_item(backend_item: APISearchResultItem) -> APISearchResu
         backend_item: The item as received from the backend service.
 
     Returns:
-        A new APISearchResultItem instance suitable for MCP responses.
+        A new APISearchResultItem instance suitable for MCP responses,
+        or an optimized dictionary format if OPTIMIZE_MODE is enabled,
+        or None if the item should be filtered out.
     """
-    # Create a new instance or use .model_copy(update=...) for Pydantic v2
+    # Check if optimization mode is enabled
+    if OPTIMIZE_MODE:
+        # Use optimized format
+        from lean_explore.mcp.optimization import PotionOptimizedResult
+        optimized = PotionOptimizedResult(backend_item)
+        
+        # Filter out low relevance items
+        if optimized.score < 0.1:
+            return None
+            
+        return optimized.to_dict()
+    
+    # Normal mode - Create a new instance
     return APISearchResultItem(
         id=backend_item.id,
         primary_declaration=backend_item.primary_declaration.model_copy()
@@ -84,7 +126,7 @@ async def search(
     ctx: MCPContext,
     query: Union[str, List[str]],
     package_filters: Optional[List[str]] = None,
-    limit: int = 10,
+    limit: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """Searches Lean statement groups by a query string or list of strings.
 
@@ -111,6 +153,15 @@ async def search(
         result item is omitted.
     """
     backend = await _get_backend_from_context(ctx)
+    
+    # Handle default limit from environment variable
+    if limit is None:
+        try:
+            limit = int(os.environ.get('LEAN_EXPLORE_DEFAULT_LIMIT', '10'))
+        except ValueError:
+            limit = 10
+    limit = max(1, min(limit, 100))  # Ensure limit is between 1 and 100
+    
     logger.info(
         f"MCP Tool 'search' called with query/queries: '{query}', "
         f"packages: {package_filters}, tool_limit: {limit}"
@@ -120,7 +171,7 @@ async def search(
         logger.error("Backend service does not have a 'search' method.")
         raise RuntimeError("Search functionality not available on configured backend.")
 
-    tool_limit = max(1, limit)
+    tool_limit = limit
     backend_responses: Union[APISearchResponse, List[APISearchResponse]]
 
     # Conditionally await based on the backend's search method type
@@ -141,6 +192,9 @@ async def search(
             else backend_responses
         )
 
+    # Get exclude keywords for filtering
+    exclude_keywords = _get_exclude_keywords()
+    
     final_mcp_responses = []
 
     for response_pydantic in responses_list:
@@ -150,18 +204,38 @@ async def search(
 
         actual_backend_results = response_pydantic.results
         mcp_results_list = []
-        for backend_item in actual_backend_results[:tool_limit]:
-            mcp_results_list.append(_prepare_mcp_result_item(backend_item))
+        
+        # Process results with filtering and limit
+        for backend_item in actual_backend_results:
+            # Check if should exclude this result
+            if _should_exclude_result(backend_item, exclude_keywords):
+                continue
+                
+            prepared_item = _prepare_mcp_result_item(backend_item)
+            if prepared_item is not None:  # None means filtered out
+                mcp_results_list.append(prepared_item)
+            
+            # Stop when we reach the limit
+            if len(mcp_results_list) >= tool_limit:
+                break
 
-        final_mcp_response = APISearchResponse(
-            query=response_pydantic.query,
-            packages_applied=response_pydantic.packages_applied,
-            results=mcp_results_list,
-            count=len(mcp_results_list),
-            total_candidates_considered=response_pydantic.total_candidates_considered,
-            processing_time_ms=response_pydantic.processing_time_ms,
-        )
-        final_mcp_responses.append(final_mcp_response.model_dump(exclude_none=True))
+        # In optimize mode, return simplified response
+        if OPTIMIZE_MODE:
+            final_mcp_responses.append({
+                "query": response_pydantic.query,
+                "results": mcp_results_list,
+                "count": len(mcp_results_list)
+            })
+        else:
+            final_mcp_response = APISearchResponse(
+                query=response_pydantic.query,
+                packages_applied=response_pydantic.packages_applied,
+                results=mcp_results_list,
+                count=len(mcp_results_list),
+                total_candidates_considered=response_pydantic.total_candidates_considered,
+                processing_time_ms=response_pydantic.processing_time_ms,
+            )
+            final_mcp_responses.append(final_mcp_response.model_dump(exclude_none=True))
 
     return final_mcp_responses
 

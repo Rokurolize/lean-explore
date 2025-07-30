@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "lean-explore-fast": {
+      "command": "C:\\\\users\\\\id374\\\\.local\\\\bin\\\\uv.EXE",
+      "args": [
+        "run",
+        "--project",
+        "C:\\\\Users\\\\id374\\\\workspace\\\\lean-explore-potionassist",
+        "python",
+        "-m",
+        "lean_explore.mcp.fast_server",
+        "--backend",
+        "lazy-local",
+        "--pre-warm"
+      ],
+      "env": {}
+    }
+  }
+}

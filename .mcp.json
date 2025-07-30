@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "lean-explore": {
+      "command": "C:\\\\users\\\\id374\\\\.local\\\\bin\\\\uv.EXE",
+      "args": [
+        "run",
+        "--project",
+        "C:\\\\Users\\\\id374\\\\workspace\\\\lean-explore-potionassist",
+        "python",
+        "-m",
+        "lean_explore.mcp.server",
+        "--backend",
+        "local"
+      ],
+      "env": {
+        "LEAN_EXPLORE_OPTIMIZE": "true",
+        "LEAN_EXPLORE_DEFAULT_LIMIT": "10",
+        "LEAN_EXPLORE_EXCLUDE_KEYWORDS": "quantum,physics,telescope,geometry,galois,category,topology,algebraic_geometry,euclidean,harmonic,oscillator,scheme"
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+[submodule "external/potion_problem"]
+	path = external/potion_problem
+	url = https://github.com/Rokurolize/potion_problem.git
