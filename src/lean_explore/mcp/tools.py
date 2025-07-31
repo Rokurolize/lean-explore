@@ -24,6 +24,11 @@ from lean_explore.shared.models.api import (
     APISearchResultItem,
 )
 
+# Import new analysis modules
+from lean_explore.mcp.sorry_analyzer import SorryContextAnalyzer
+from lean_explore.mcp.smart_filter import SmartExcludeFilter
+from lean_explore.mcp.api_recommender import APIRecommendationEngine
+
 logger = logging.getLogger(__name__)
 
 # Global optimization mode setting
